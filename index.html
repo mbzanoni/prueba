@@ -44,6 +44,7 @@
     .progress { font-size: 13px; opacity:.9; }
     .divider { height:1px; background:#252730; margin:14px 0; }
 
+    /* (base) Likert tipo tarjeta */
     .likert-row { display:flex; flex-direction:column; gap:10px; margin: 8px 0 14px; }
     .likert-row label { margin:0; display:flex; align-items:center; gap:10px; padding: 10px; border-radius: 10px; border: 1px solid #2b2f3d; background:#0f111a; }
     .q { margin: 8px 0 10px; }
@@ -51,6 +52,10 @@
 
     /* Error box (solo aparece si hay error) */
     #errorBox { background:#2a0f14; border: 1px solid #6b1e2b; border-radius: 10px; padding: 12px; }
+
+    /* ✅ OVERRIDE SOLO EN TAREA: opciones como "antes" (en fila, simple) */
+    #sec-task .likert-row { display:flex; gap:12px; flex-wrap:wrap; margin: 8px 0 14px; }
+    #sec-task .likert-row label { margin:0; display:flex; align-items:center; gap:8px; padding:0; border:none; background:transparent; }
   </style>
 </head>
 
@@ -245,7 +250,7 @@
   // CONFIG SUPABASE
   // =========================
   const SUPABASE_URL = "https://qwwdnoorbfpynnilaccy.supabase.co";
-  const SUPABASE_ANON_KEY = "PEGA_TU_ANON_KEY_ACA";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3d2Rub29yYmZweW5uaWxhY2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NjY4ODcsImV4cCI6MjA4ODE0Mjg4N30.PqIZ_Dx9rJhZKp7VbwHyK5WbR9avVjkOJje7gFlAW_M";
 
   // =========================
   // STIMULI
@@ -313,7 +318,7 @@
     "Puedo respetar a otros, aunque esté fuertemente en desacuerdo con ellos.",
     "Estoy dispuesto/a a escuchar a otros, aunque no esté de acuerdo con lo que dicen.",
     "Cuando alguien no está de acuerdo con ideas que son importantes para mí, me siento insignificante.",
-    "Me siento menos cuando otros no están de acuerdo conmigo en temas que son importantes para mí."
+    "Me siento menos cuando otros no están de acuerdo con ideas que son importantes para mí."
   ];
 
   // =========================
@@ -507,7 +512,7 @@
   let trialIdx = 0;
   let seenFalseStimuli = [];
 
-  let expStartIso = null; // start time
+  let expStartIso = null;
   let deviceType = null;
   let userAgent = null;
 
@@ -547,7 +552,6 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
     clearError();
     grupo = assignGroup2x2();
 
-    // start time + device info (lo guardamos en memoria y lo insertamos con participants)
     expStartIso = new Date().toISOString();
     deviceType = getDeviceType();
     userAgent = navigator.userAgent || "";
@@ -657,7 +661,6 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
       if (!ihVals) throw new Error("Error interno: faltan enunciados.");
       if (!interventionText) throw new Error("Error interno: falta texto de actividad.");
 
-      // INSERT participant
       const payload = {
         ...demoData,
         grupo,
@@ -671,20 +674,16 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
       const inserted = await supabaseInsert("participants", payload, "id");
       participantId = inserted[0].id;
 
-      // Preparar tarea
       taskOrder = shuffle([...STIMULI]);
 
-      // Preload
       const preloadResults = await preloadImages(taskOrder);
       const failed = preloadResults.filter(x => !x.ok).map(x => x.src);
       if (failed.length > 0) throw new Error("No se pudieron cargar algunas imágenes:\n" + failed.join("\n"));
 
-      // Guardar el orden real
       await supabasePatch("participants", { id: participantId }, {
         stim_order: JSON.stringify(taskOrder.map(p => p.split("/").pop()))
       });
 
-      // Likerts (etiquetas correctas)
       buildTaskLikert("veracity-options", "resp_veracity", ["Nada cierta","Poco cierta","Bastante cierta","Muy cierta"]);
       buildTaskLikert("confidence-options", "resp_confidence", ["Nada seguro/a","Poco seguro/a","Bastante seguro/a","Muy seguro/a"]);
 
@@ -711,7 +710,6 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
 
     trialStartTs = performance.now();
 
-    // reset radios
     for (const name of ["resp_veracity","resp_confidence"]) {
       document.querySelectorAll(`input[name="${name}"]`).forEach(x => x.checked = false);
     }
