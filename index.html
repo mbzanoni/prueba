@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Estudio online</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0d0e12; color:#d8dae8; margin:0; padding:0; }
+    .container { max-width: 980px; margin: 0 auto; padding: 18px; }
+    .card { margin: 14px 0; padding: 14px; background: #161820; border: 1px solid #252730; border-radius: 10px; }
+    h2 { color:#fff; margin:0 0 10px; font-size: 22px; }
+    h3 { color:#fff; margin:14px 0 10px; font-size: 18px; }
+    p { line-height: 1.35; }
+    label { display:block; margin:10px 0 6px; }
+    input, select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #333; background:#0f111a; color:#fff; }
+    textarea { resize: vertical; }
+
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .row.stack { flex-direction: column; }
+    .col { flex: 1 1 260px; min-width: 260px; }
+
+    .btn { padding:12px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:700; width: 100%; }
+    .btn.primary { background:#5b8dee; color:#fff; }
+    .btn.ghost { background: transparent; border: 1px solid #394055; color:#d8dae8; }
+
+    .hint { font-size: 13px; opacity: .9; }
+    .err { color: #ff8a8a; white-space: pre-wrap; margin: 12px 0 0; }
+    .hidden { display:none; }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    /* IH */
+    .ih-block { background:#0f111a; border: 1px solid #2b2f3d; border-radius: 10px; padding: 12px; margin: 12px 0; }
+    .ih-text { margin: 0 0 10px; }
+    .ih-scale { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .ih-end { font-size: 12px; opacity: .95; min-width: 170px; }
+    .ih-end.right { text-align:right; }
+    .ih-radios { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+    .ih-radios label { margin:0; display:flex; align-items:center; gap:6px; font-size: 13px; opacity:.95; }
+
+    /* Task */
+    .stim-wrap { display:flex; justify-content:center; }
+    .stim { max-width: 100%; max-height: 420px; border-radius: 10px; border: 1px solid #2b2f3d; }
+    .progress { font-size: 13px; opacity:.9; }
+    .divider { height:1px; background:#252730; margin:14px 0; }
+    .q { margin: 8px 0 10px; }
+    .q strong { display:block; margin-bottom: 8px; }
+
+    /* Error box (solo aparece si hay error) */
+    #errorBox { background:#2a0f14; border: 1px solid #6b1e2b; border-radius: 10px; padding: 12px; }
+
+    /* ===== IH: compactar en mobile (no apilar) ===== */
+    @media (max-width: 520px) {
+      .ih-scale{
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .ih-end{
+        min-width: 72px;
+        max-width: 72px;
+        font-size: 10px;
+        line-height: 1.1;
+        opacity: .85;
+        white-space: normal;
+      }
+      .ih-radios{
+        gap: 8px;
+        flex-wrap: nowrap;
+      }
+      .ih-radios label{
+        font-size: 12px;
+        gap: 4px;
+      }
+    }
+
+    /* ===== BOTONES SOLO EN TAREA (titulares) ===== */
+    #sec-task .opt-row { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 14px; }
+    #sec-task .opt-btn{
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #2b2f3d;
+      background:#0f111a;
+      color:#d8dae8;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #sec-task .opt-btn:hover { border-color:#5b8dee; }
+    #sec-task .opt-btn.active { background:#5b8dee; border-color:#5b8dee; color:#fff; }
+
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <!-- Error (solo si hay error) -->
+  <div id="errorBox" class="err hidden"></div>
+
+  <!-- 0) Consentimiento -->
+  <section id="sec-consent" class="card">
+    <h2>Consentimiento informado</h2>
+    <p>
+      El presente estudio es realizado con fines académicos por investigadores de la Universidad Torcuato Di Tella
+      (Av. Figueroa Alcorta 7350, CABA, Argentina). Se estima que participarán aproximadamente 400 personas.
+      La participación consiste en completar una encuesta online de aproximadamente 15 minutos de duración.
+    </p>
+    <p>
+      La participación en este estudio no conlleva ningún riesgo para la salud. Tu participación es completamente voluntaria
+      y podés interrumpirla o abandonar el estudio en cualquier momento, sin necesidad de dar explicaciones y sin ningún perjuicio.
+    </p>
+    <p>
+      Los datos recolectados serán tratados de forma anónima y confidencial. No se solicitará información que permita identificarte personalmente.
+      Los datos serán utilizados exclusivamente con fines académicos y de investigación.
+    </p>
+    <p>
+      Si tenés alguna duda o consulta sobre el estudio o sobre tu participación, podés comunicarte por correo electrónico a:
+      <span class="mono">mbzanoni@gmail.com</span>.
+    </p>
+
+    <div class="divider"></div>
+
+    <div class="row stack">
+      <button class="btn primary" id="btn-consent-yes">Sí, acepto participar</button>
+      <button class="btn ghost" id="btn-consent-no">No, no acepto participar</button>
+    </div>
+  </section>
+
+  <!-- 0.5) Confirmación +18 -->
+  <section id="sec-age" class="card hidden">
+    <h2>Confirmación de edad</h2>
+    <p>Para participar en este estudio, necesitás ser mayor de 18 años.</p>
+
+    <div class="row stack" style="margin-top:12px;">
+      <button class="btn primary" id="btn-age-yes">Soy mayor de 18 años</button>
+      <button class="btn ghost" id="btn-age-no">No soy mayor de 18 años</button>
+    </div>
+  </section>
+
+  <!-- 1) Sociodemográficas (solo) -->
+  <section id="sec-demo" class="card hidden">
+    <h2>Encuesta</h2>
+    <p class="hint">Completá los siguientes datos.</p>
+
+    <div class="row">
+      <div class="col">
+        <label for="edad">Edad</label>
+        <input type="number" id="edad" min="18" max="55" placeholder="Edad (18–55)" />
+      </div>
+
+      <div class="col">
+        <label for="genero">Género</label>
+        <select id="genero">
+          <option value="" selected disabled>Selecciona</option>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
+          <option value="NB">No binario</option>
+          <option value="NA">Prefiero no decir</option>
+        </select>
+      </div>
+
+      <div class="col">
+        <label for="provincia">Provincia</label>
+        <select id="provincia"></select>
+      </div>
+
+      <div class="col">
+        <label for="educativo">Nivel educativo</label>
+        <select id="educativo">
+          <option value="" selected disabled>Selecciona</option>
+          <option value="primario_incompleto">Primario incompleto</option>
+          <option value="primario_completo">Primario completo</option>
+          <option value="secundario_incompleto">Secundario incompleto</option>
+          <option value="secundario_completo">Secundario completo</option>
+          <option value="superior_universitario_incompleto">Superior/Universitario incompleto</option>
+          <option value="superior_universitario_completo">Superior/Universitario completo</option>
+          <option value="posgrado_incompleto">Posgrado incompleto</option>
+          <option value="posgrado_completo">Posgrado completo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row stack" style="margin-top:12px;">
+      <button class="btn primary" id="btn-demo-next">Continuar</button>
+    </div>
+  </section>
+
+  <!-- 2) Humildad Intelectual (solo) -->
+  <section id="sec-ih" class="card hidden">
+    <p>Esta es una lista de frases que distintas personas podrían decir de sí mismas.</p>
+    <p>Nos interesa saber de qué manera te describís vos.</p>
+    <p>No hay respuestas correctas e incorrectas: describite con toda la honestidad posible.</p>
+    <p>Nos gustaría que te tomes tu tiempo para leer cada frase con atención y elegir la respuesta que mejor te describa.</p>
+
+    <div class="divider"></div>
+
+    <div id="ih-items"></div>
+
+    <div class="row stack" style="margin-top:12px;">
+      <button class="btn primary" id="btn-ih-next">Continuar</button>
+    </div>
+  </section>
+
+  <!-- 3) Intervención (solo) -->
+  <section id="sec-interv" class="card hidden">
+    <p id="intervention-instruction" class="hint"></p>
+
+    <label for="intervencion_text">Respuesta (mínimo 150 caracteres)</label>
+    <textarea id="intervencion_text" rows="8" placeholder="Escribí tu respuesta..."></textarea>
+    <div class="hint"><span id="charCount">0</span>/150</div>
+
+    <div class="row stack" style="margin-top:12px;">
+      <button class="btn primary" id="btn-interv-next">Continuar</button>
+    </div>
+  </section>
+
+  <!-- 4) Recompensa (solo info, sin título) -->
+  <section id="sec-reward" class="card hidden">
+    <p id="reward-text"></p>
+
+    <div class="row stack" style="margin-top:12px;">
+      <button class="btn primary" id="btn-start-task">Continuar</button>
+    </div>
+  </section>
+
+  <!-- 5) Tarea de reconocimiento -->
+  <section id="sec-task" class="card hidden">
+    <div class="row" style="justify-content:space-between; align-items:center;">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stim-wrap">
+      <img id="stim-img" class="stim" alt="Estímulo" />
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="q">
+      <strong>¿Le parece que la información presentada en este titular es cierta?</strong>
+      <!-- ✅ botones -->
+      <div class="opt-row" id="veracity-options"></div>
+    </div>
+
+    <div class="q">
+      <strong>¿Con cuánta seguridad respondió?</strong>
+      <!-- ✅ botones -->
+      <div class="opt-row" id="confidence-options"></div>
+    </div>
+
+    <div class="row stack" style="margin-top:12px;">
+      <button class="btn primary" id="btn-next-trial">Siguiente</button>
+    </div>
+  </section>
+
+  <!-- 6) Compromiso -->
+  <section id="sec-commit" class="card hidden">
+    <h2>Pregunta final</h2>
+    <p>¿Considera que respondió de manera sincera y comprometida a lo largo del experimento?</p>
+
+    <div class="row stack">
+      <button class="btn primary" id="btn-commit-yes">Sí</button>
+      <button class="btn ghost" id="btn-commit-no">No</button>
+    </div>
+  </section>
+
+  <!-- 7) Debriefing -->
+  <section id="sec-debrief" class="card hidden">
+    <h2>Información final</h2>
+    <p>En este estudio se incluyeron titulares verdaderos y falsos con fines científicos.</p>
+    <p>Los siguientes titulares contienen información falsa.</p>
+
+    <div id="debrief-images" class="row"></div>
+
+    <div class="divider"></div>
+    <p><strong>Gracias por participar.</strong></p>
+  </section>
+
+</div>
+
+<script>
+  // =========================
+  // CONFIG SUPABASE
+  // =========================
+  const SUPABASE_URL = "https://qwwdnoorbfpynnilaccy.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3d2Rub29yYmZweW5uaWxhY2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NjY4ODcsImV4cCI6MjA4ODE0Mjg4N30.PqIZ_Dx9rJhZKp7VbwHyK5WbR9avVjkOJje7gFlAW_M"; // <-- tu anon key real
+
+  // =========================
+  // STIMULI
+  // =========================
+  const STIMULI = [
+    "f_mosquito_repelente.png",
+    "f_salud_otro3.png",
+    "f_salud_otro4.png",
+    "f_suplemento.png",
+    "f_vacuna_covid.png",
+    "f_vacuna_covid2.png",
+    "f_vacuna_covid3.png",
+    "f_vacuna_covid4.png",
+    "f_vacuna_gripe.png",
+    "t_antibioticos.png",
+    "t_nuevo_encuesta.png",
+    "t_nuevo_vacunacion_infantil.png",
+    "t_nutricion.png",
+    "t_salud_otro3.png",
+    "t_vacuna_covid.png",
+    "t_vacuna_hpv.png",
+    "t_vacuna_neumonia.png",
+    "t_vih_diagnostico.png"
+  ].map(n => `stimuli/${n}`);
+
+  // RT
+  let trialStartTs = null;
+
+  // =========================
+  // PROVINCIAS + CABA
+  // =========================
+  const PROVINCIAS = [
+    "CABA","Buenos Aires","Catamarca","Chaco","Chubut","Córdoba","Corrientes","Entre Ríos","Formosa","Jujuy",
+    "La Pampa","La Rioja","Mendoza","Misiones","Neuquén","Río Negro","Salta","San Juan","San Luis","Santa Cruz",
+    "Santa Fe","Santiago del Estero","Tierra del Fuego","Tucumán"
+  ];
+
+  function deriveRegion(provincia) {
+    if (provincia === "CABA" || provincia === "Buenos Aires") return "AMBA";
+    return "Interior";
+  }
+
+  // =========================
+  // HUMILDAD INTELECTUAL ITEMS (22)
+  // =========================
+  const IH_TEXTS = [
+    "A menudo mis ideas son mejores que las de otros.",
+    "La mayoría de las veces, otros tienen más para aprender de mí, que yo de ellos.",
+    "Cuando confío realmente en una creencia, hay pocas posibilidades de que esa creencia sea errónea.",
+    "Prefiero confiar en mi propio conocimiento, que recurrir a la experiencia de otros.",
+    "En temas importantes, no me dejo influenciar por los puntos de vista de otros.",
+    "En ocasiones, he cambiado opiniones que eran importantes para mí, cuando alguien me mostró que estaba equivocado.",
+    "Estoy dispuesto/a cambiar mis opiniones de un tema importante sobre la base de razones convincentes.",
+    "Estoy abierto/a revisar mis principales creencias frente a nueva información.",
+    "Estoy dispuesto/a a cambiar mi posición sobre un tema importante cuando me encuentro con buenas razones para hacerlo.",
+    "Estoy dispuesto a cambiar de opinión una vez que se ha decidido sobre un tema importante.",
+    "Respeto que hay maneras de tomar decisiones importantes, distintas a las mías.",
+    "Escuchar las perspectivas de otros, rara vez cambia mis opiniones importantes.",
+    "Recibo de manera positiva distintas maneras de pensar sobre temas importantes.",
+    "Puedo tener un gran respeto por otros, aunque esté en desacuerdo en temas importantes.",
+    "Aunque no esté de acuerdo con alguien, puedo reconocer que presenta buenos argumentos.",
+    "Cuando alguien no está de acuerdo con ideas que son importantes para mí, siento que me están atacando.",
+    "Cuando alguien contradice mis creencias más importantes, lo siento como un ataque personal.",
+    "Tiendo a sentirme amenazado, cuando otros no están de acuerdo conmigo en temas que son importantes.",
+    "Puedo respetar a otros, aunque esté fuertemente en desacuerdo en temas importantes.",
+    "Estoy dispuesto/a a escuchar a otros, aunque no esté de acuerdo con lo que dicen.",
+    "Cuando alguien no está de acuerdo con ideas que son importantes para mí, me siento insignificante.",
+    "Me siento menos cuando otros no están de acuerdo con ideas que son importantes para mí."
+  ];
+
+  // =========================
+  // UI HELPERS
+  // =========================
+  const errorBox = document.getElementById("errorBox");
+  function showError(msg) {
+    errorBox.classList.remove("hidden");
+    errorBox.textContent = msg;
+    window.scrollTo(0,0);
+  }
+  function clearError() {
+    errorBox.classList.add("hidden");
+    errorBox.textContent = "";
+  }
+  function showSection(id) {
+    for (const sec of ["sec-consent","sec-age","sec-demo","sec-ih","sec-interv","sec-reward","sec-task","sec-commit","sec-debrief"]) {
+      document.getElementById(sec).classList.add("hidden");
+    }
+    document.getElementById(id).classList.remove("hidden");
+    window.scrollTo(0,0);
+  }
+
+  // =========================
+  // GROUP 2x2
+  // =========================
+  function assignGroup2x2() {
+    const a = Math.random() < 0.5 ? "ctrl" : "exp";
+    const b = Math.random() < 0.5 ? "noreward" : "reward";
+    return `${a}_${b}`;
+  }
+
+  // =========================
+  // DEVICE INFO
+  // =========================
+  function getDeviceType() {
+    const ua = navigator.userAgent || "";
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua) || (window.innerWidth && window.innerWidth < 768);
+    return isMobile ? "mobile" : "desktop";
+  }
+
+  // =========================
+  // SUPABASE REST HELPERS
+  // =========================
+  async function supabaseInsert(table, payload, select="") {
+    const url = `${SUPABASE_URL}/rest/v1/${table}${select ? `?select=${encodeURIComponent(select)}` : ""}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Supabase ${res.status}: ${text}`);
+    return JSON.parse(text);
+  }
+
+  async function supabasePatch(table, matchObj, payload) {
+    const params = new URLSearchParams();
+    for (const [k,v] of Object.entries(matchObj)) params.set(k, `eq.${v}`);
+    const url = `${SUPABASE_URL}/rest/v1/${table}?${params.toString()}`;
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Supabase ${res.status}: ${text}`);
+    return JSON.parse(text);
+  }
+
+  // =========================
+  // BUILD UI
+  // =========================
+  function initProvinciaDropdown() {
+    const sel = document.getElementById("provincia");
+    sel.innerHTML = `<option value="" selected disabled>Selecciona</option>`;
+    for (const p of PROVINCIAS) {
+      const opt = document.createElement("option");
+      opt.value = p;
+      opt.textContent = p;
+      sel.appendChild(opt);
+    }
+  }
+
+  function buildIH() {
+    const wrap = document.getElementById("ih-items");
+    wrap.innerHTML = "";
+
+    IH_TEXTS.forEach((txt, i) => {
+      const idx = String(i+1).padStart(2,"0");
+
+      const block = document.createElement("div");
+      block.className = "ih-block";
+
+      const p = document.createElement("p");
+      p.className = "ih-text";
+      p.textContent = txt;
+
+      const scale = document.createElement("div");
+      scale.className = "ih-scale";
+
+      const left = document.createElement("div");
+      left.className = "ih-end";
+      left.textContent = "Totalmente en desacuerdo";
+
+      const radios = document.createElement("div");
+      radios.className = "ih-radios";
+
+      for (let v=1; v<=5; v++) {
+        const lab = document.createElement("label");
+        const inp = document.createElement("input");
+        inp.type = "radio";
+        inp.name = `ih_${idx}`;
+        inp.value = String(v);
+        lab.appendChild(inp);
+        lab.appendChild(document.createTextNode(` ${v}`));
+        radios.appendChild(lab);
+      }
+
+      const right = document.createElement("div");
+      right.className = "ih-end right";
+      right.textContent = "Totalmente de acuerdo";
+
+      scale.appendChild(left);
+      scale.appendChild(radios);
+      scale.appendChild(right);
+
+      block.appendChild(p);
+      block.appendChild(scale);
+      wrap.appendChild(block);
+    });
+  }
+
+  // ✅ BOTONES para tarea (solo contenedor + labels)
+  function buildTaskButtons(containerId, labels) {
+    const cont = document.getElementById(containerId);
+    cont.innerHTML = "";
+    cont.dataset.value = "";
+
+    labels.forEach((text, i) => {
+      const v = String(i + 1);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "opt-btn";
+      btn.dataset.value = v;
+      btn.textContent = text;
+
+      btn.addEventListener("click", () => {
+        cont.dataset.value = v;
+        cont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+
+      cont.appendChild(btn);
+    });
+  }
+
+  // =========================
+  // UTILS
+  // =========================
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  async function preloadImages(paths) {
+    const loaders = paths.map(src => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({src, ok:true});
+      img.onerror = () => resolve({src, ok:false});
+      img.src = src;
+    }));
+    return Promise.all(loaders);
+  }
+
+  // =========================
+  // STATE
+  // =========================
+  let grupo = null;
+  let participantId = null;
+
+  let demoData = null;
+  let ihVals = null;
+  let interventionText = null;
+
+  let taskOrder = [];
+  let trialIdx = 0;
+  let seenFalseStimuli = [];
+
+  let expStartIso = null;
+  let deviceType = null;
+  let userAgent = null;
+
+  // =========================
+  // CONSIGNAS
+  // =========================
+  const CONSIGNA_EXP = `Por favor, explicá con el mayor detalle posible cómo hacés para distinguir si una noticia es verdadera o falsa.
+No queremos que pienses en una noticia en particular, sino sobre el proceso general que usás para verificar la veracidad de la información: se trata de que brindes la mejor explicación que puedas.
+
+Tomate tu tiempo para pensar y escribir con calma.`;
+
+  const CONSIGNA_CTRL = `Por favor, explicá con el mayor detalle posible cómo hacés para decidir sobre una compra.
+No queremos que pienses en un producto en particular, sino sobre el proceso general que usás para comparar las opciones que tenés disponibles: se trata de que brindes la mejor explicación que puedas.
+
+Tomate tu tiempo para pensar y escribir con calma.`;
+
+  const REWARD_TEXT_REWARD = `A continuación vas a ver algunas noticias.
+Para cada una, te pedimos que indiques si te parece que la información es verdadera o falsa.
+
+También te vamos a pedir que indiques qué tan seguro/a estás de tu respuesta.
+
+Es importante no solo tratar de acertar, sino también que tu nivel de seguridad coincida con qué tan correcto/a estés.
+
+Si estás entre el XX% de participantes con mejor desempeño, teniendo en cuenta tanto los aciertos como qué tan bien coincide tu seguridad con tus respuestas, se agregará una recompensa extra.`;
+
+  const REWARD_TEXT_NOREWARD = `A continuación vas a ver algunas noticias.
+Para cada una, te pedimos que indiques si te parece que la información es verdadera o falsa.
+
+También te vamos a pedir que indiques qué tan seguro/a estás de tu respuesta.
+
+Es importante no solo tratar de acertar, sino también que tu nivel de seguridad coincida con qué tan correcto/a estés.`;
+
+  // =========================
+  // FLOW
+  // =========================
+  document.getElementById("btn-consent-yes").addEventListener("click", () => {
+    clearError();
+    grupo = assignGroup2x2();
+
+    expStartIso = new Date().toISOString();
+    deviceType = getDeviceType();
+    userAgent = navigator.userAgent || "";
+
+    showSection("sec-age");
+  });
+
+  document.getElementById("btn-consent-no").addEventListener("click", () => {
+    clearError();
+    alert("Gracias. Podés cerrar esta ventana.");
+  });
+
+  document.getElementById("btn-age-yes").addEventListener("click", () => {
+    clearError();
+    showSection("sec-demo");
+  });
+
+  document.getElementById("btn-age-no").addEventListener("click", () => {
+    clearError();
+    alert("Gracias. Este estudio es solo para mayores de 18 años. Podés cerrar esta ventana.");
+  });
+
+  // DEMO -> IH
+  document.getElementById("btn-demo-next").addEventListener("click", () => {
+    clearError();
+    try {
+      const edadRaw = document.getElementById("edad").value;
+      const edad = Number(edadRaw);
+      const genero = document.getElementById("genero").value;
+      const provincia = document.getElementById("provincia").value;
+      const educativo = document.getElementById("educativo").value;
+
+      if (!edadRaw || Number.isNaN(edad)) throw new Error("Falta completar la edad.");
+      if (edad < 18) throw new Error("La edad debe ser igual o mayor a 18 años.");
+      if (edad > 55) throw new Error("La edad máxima para este estudio es 55 años.");
+      if (!genero) throw new Error("Falta seleccionar el género.");
+      if (!provincia) throw new Error("Falta seleccionar la provincia.");
+      if (!educativo) throw new Error("Falta seleccionar el nivel educativo.");
+
+      demoData = { edad, genero, provincia, region: deriveRegion(provincia), educativo };
+      showSection("sec-ih");
+    } catch (e) {
+      showError(e.message);
+    }
+  });
+
+  // IH -> Intervención
+  document.getElementById("btn-ih-next").addEventListener("click", () => {
+    clearError();
+    try {
+      const tmp = {};
+      for (let i=1; i<=22; i++) {
+        const idx = String(i).padStart(2,"0");
+        const chosen = document.querySelector(`input[name="ih_${idx}"]:checked`);
+        if (!chosen) {
+          const txt = IH_TEXTS[i-1];
+          throw new Error(`Falta responder el enunciado ${i}:\n"${txt}"`);
+        }
+        tmp[`ih_${idx}`] = Number(chosen.value);
+      }
+      ihVals = tmp;
+
+      const isExp = grupo && grupo.startsWith("exp");
+      document.getElementById("intervention-instruction").textContent = isExp ? CONSIGNA_EXP : CONSIGNA_CTRL;
+
+      showSection("sec-interv");
+    } catch (e) {
+      showError(e.message);
+    }
+  });
+
+  // contador de caracteres intervención
+  const txtInterv = document.getElementById("intervencion_text");
+  txtInterv.addEventListener("input", () => {
+    document.getElementById("charCount").textContent = String(txtInterv.value.length);
+  });
+
+  // Intervención -> Reward
+  document.getElementById("btn-interv-next").addEventListener("click", () => {
+    clearError();
+    try {
+      const t = txtInterv.value.trim();
+      if (!t) throw new Error("Falta escribir la respuesta de la actividad.");
+      if (t.length < 150) throw new Error("La respuesta debe tener al menos 150 caracteres.");
+      interventionText = t;
+
+      const hasReward = grupo && grupo.endsWith("reward");
+      document.getElementById("reward-text").textContent = hasReward ? REWARD_TEXT_REWARD : REWARD_TEXT_NOREWARD;
+
+      showSection("sec-reward");
+    } catch (e) {
+      showError(e.message);
+    }
+  });
+
+  // Start task: INSERT participant + preload + iniciar
+  document.getElementById("btn-start-task").addEventListener("click", async () => {
+    clearError();
+
+    const startBtn = document.getElementById("btn-start-task");
+    startBtn.disabled = true;
+    startBtn.textContent = "Preparando…";
+
+    try {
+      if (!grupo) throw new Error("Error interno: grupo no asignado.");
+      if (!demoData) throw new Error("Error interno: faltan datos sociodemográficos.");
+      if (!ihVals) throw new Error("Error interno: faltan enunciados.");
+      if (!interventionText) throw new Error("Error interno: falta texto de actividad.");
+
+      const payload = {
+        ...demoData,
+        grupo,
+        intervencion_text: interventionText,
+        start_time: expStartIso,
+        device_type: deviceType,
+        user_agent: userAgent,
+        ...ihVals
+      };
+
+      const inserted = await supabaseInsert("participants", payload, "id");
+      participantId = inserted[0].id;
+
+      taskOrder = shuffle([...STIMULI]);
+
+      const preloadResults = await preloadImages(taskOrder);
+      const failed = preloadResults.filter(x => !x.ok).map(x => x.src);
+      if (failed.length > 0) throw new Error("No se pudieron cargar algunas imágenes:\n" + failed.join("\n"));
+
+      await supabasePatch("participants", { id: participantId }, {
+        stim_order: JSON.stringify(taskOrder.map(p => p.split("/").pop()))
+      });
+
+      // ✅ construir botones (solo tarea)
+      buildTaskButtons("veracity-options", ["Nada cierta","Poco cierta","Bastante cierta","Muy cierta"]);
+      buildTaskButtons("confidence-options", ["Nada seguro/a","Poco seguro/a","Bastante seguro/a","Muy seguro/a"]);
+
+      trialIdx = 0;
+      seenFalseStimuli = [];
+
+      showSection("sec-task");
+      renderTrial();
+
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+      startBtn.disabled = false;
+      startBtn.textContent = "Continuar";
+    }
+  });
+
+  function renderTrial() {
+    const stim = taskOrder[trialIdx];
+    document.getElementById("stim-img").src = stim;
+
+    const pct = Math.round((trialIdx / taskOrder.length) * 100);
+    document.getElementById("progress").textContent = `Completado: ${pct}%`;
+
+    trialStartTs = performance.now();
+
+    // reset botones (veracity/confidence)
+    const vCont = document.getElementById("veracity-options");
+    const cCont = document.getElementById("confidence-options");
+    vCont.dataset.value = "";
+    cCont.dataset.value = "";
+    vCont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
+    cCont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
+
+    const nextBtn = document.getElementById("btn-next-trial");
+    nextBtn.disabled = false;
+    nextBtn.textContent = "Siguiente";
+  }
+
+  document.getElementById("btn-next-trial").addEventListener("click", async () => {
+    clearError();
+
+    const nextBtn = document.getElementById("btn-next-trial");
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Guardando…";
+
+    try {
+      const vVal = document.getElementById("veracity-options").dataset.value;
+      const cVal = document.getElementById("confidence-options").dataset.value;
+
+      if (!vVal && !cVal) throw new Error("Falta responder ambas preguntas.");
+      if (!vVal) throw new Error("Falta responder la pregunta sobre veracidad.");
+      if (!cVal) throw new Error("Falta responder la pregunta sobre seguridad.");
+
+      const stim = taskOrder[trialIdx];
+      const file = stim.split("/").pop();
+
+      if (file && file.startsWith("f_")) seenFalseStimuli.push(file);
+
+      const truth = file.startsWith("t_");
+      const rt_ms = trialStartTs ? Math.round(performance.now() - trialStartTs) : null;
+
+      const trialPayload = {
+        participant_id: participantId,
+        stimulus: file,
+        trial_order: trialIdx + 1,
+        resp_veracity: Number(vVal),
+        resp_confidence: Number(cVal),
+        truth: truth,
+        rt_ms: rt_ms
+      };
+
+      await supabaseInsert("trials", trialPayload, "created_at");
+
+      trialIdx += 1;
+      if (trialIdx >= taskOrder.length) {
+        showSection("sec-commit");
+      } else {
+        renderTrial();
+      }
+
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Siguiente";
+    }
+  });
+
+  // compromiso + debrief (guardamos end_time)
+  document.getElementById("btn-commit-yes").addEventListener("click", () => finalize(true));
+  document.getElementById("btn-commit-no").addEventListener("click", () => finalize(false));
+
+  async function finalize(committed) {
+    clearError();
+
+    const yesBtn = document.getElementById("btn-commit-yes");
+    const noBtn  = document.getElementById("btn-commit-no");
+    yesBtn.disabled = true;
+    noBtn.disabled = true;
+
+    try {
+      await supabasePatch("participants", { id: participantId }, {
+        compromiso: committed,
+        end_time: new Date().toISOString(),
+        completed_at: new Date().toISOString()
+      });
+
+      const cont = document.getElementById("debrief-images");
+      cont.innerHTML = "";
+
+      const falsosUnicos = Array.from(new Set(seenFalseStimuli));
+      if (falsosUnicos.length === 0) {
+        const p = document.createElement("p");
+        p.className = "hint";
+        p.textContent = "No hay titulares falsos para mostrar en esta etapa (según el set actual).";
+        cont.appendChild(p);
+      } else {
+        falsosUnicos.forEach(file => {
+          const base = file.replace(/\.png$/i, "");
+          const deb = `debriefing/${base}_debriefing.png`;
+
+          const wrap = document.createElement("div");
+          wrap.className = "col";
+          wrap.style.flex = "1 1 320px";
+
+          const img = document.createElement("img");
+          img.src = deb;
+          img.alt = "Debriefing";
+          img.className = "stim";
+
+          wrap.appendChild(img);
+          cont.appendChild(wrap);
+        });
+      }
+
+      showSection("sec-debrief");
+
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+      yesBtn.disabled = false;
+      noBtn.disabled = false;
+    }
+  }
+
+  // =========================
+  // INIT
+  // =========================
+  initProvinciaDropdown();
+  buildIH();
+</script>
+
+</body>
+</html>
