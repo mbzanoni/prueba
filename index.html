@@ -83,7 +83,21 @@
      font-size: 12px;
       gap: 4px;
     }
-}
+  }
+    /* ===== Task: opciones como botones (en vez de radios) ===== */
+    .opt-row { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 14px; }
+    .opt-btn{
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #2b2f3d;
+      background:#0f111a;
+      color:#d8dae8;
+      font-weight: 700;
+      cursor: pointer;
+  }
+    .opt-btn:hover { border-color:#5b8dee; }
+    .opt-btn.active { background:#5b8dee; border-color:#5b8dee; color:#fff; }
+
   </style>
 </head>
 
@@ -240,7 +254,7 @@
 
     <div class="q">
       <strong>¿Con cuánta seguridad respondió?</strong>
-      <div class="likert-row" id="confidence-options"></div>
+      <div class="opt-row" id="confidence-options"></div>
     </div>
 
     <div class="row stack" style="margin-top:12px;">
@@ -491,19 +505,30 @@
   }
 
   function buildTaskLikert(containerId, name, labels) {
-    const cont = document.getElementById(containerId);
-    cont.innerHTML = "";
-    for (let v=1; v<=4; v++) {
-      const lab = document.createElement("label");
-      const inp = document.createElement("input");
-      inp.type = "radio";
-      inp.name = name;
-      inp.value = String(v);
-      lab.appendChild(inp);
-      lab.appendChild(document.createTextNode(labels[v-1]));
-      cont.appendChild(lab);
-    }
+  const cont = document.getElementById(containerId);
+  cont.innerHTML = "";
+  cont.dataset.value = ""; // acá guardamos la opción elegida (1..4)
+
+  labels.forEach((labText, i) => {
+    const v = String(i + 1);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "opt-btn";
+    btn.dataset.value = v;
+    btn.dataset.name = name;
+    btn.textContent = labText;
+
+    btn.addEventListener("click", () => {
+      cont.dataset.value = v;
+      cont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+
+    cont.appendChild(btn);
+  });
   }
+  
 
   // =========================
   // UTILS
@@ -738,8 +763,13 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
 
     trialStartTs = performance.now();
 
-    for (const name of ["resp_veracity","resp_confidence"]) {
-      document.querySelectorAll(`input[name="${name}"]`).forEach(x => x.checked = false);
+    // reset botones (veracity/confidence)
+    const vCont = document.getElementById("veracity-options");
+    const cCont = document.getElementById("confidence-options");
+    vCont.dataset.value = "";
+    cCont.dataset.value = "";
+    vCont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
+    cCont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
     }
 
     const nextBtn = document.getElementById("btn-next-trial");
@@ -755,12 +785,12 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
     nextBtn.textContent = "Guardando…";
 
     try {
-      const v = document.querySelector('input[name="resp_veracity"]:checked');
-      const c = document.querySelector('input[name="resp_confidence"]:checked');
+      const vVal = document.getElementById("veracity-options").dataset.value;
+      const cVal = document.getElementById("confidence-options").dataset.value;
 
-      if (!v && !c) throw new Error("Falta responder ambas preguntas.");
-      if (!v) throw new Error("Falta responder la pregunta sobre veracidad.");
-      if (!c) throw new Error("Falta responder la pregunta sobre seguridad.");
+      if (!vVal && !cVal) throw new Error("Falta responder ambas preguntas.");
+      if (!vVal) throw new Error("Falta responder la pregunta sobre veracidad.");
+      if (!cVal) throw new Error("Falta responder la pregunta sobre seguridad.");
 
       const stim = taskOrder[trialIdx];
       const file = stim.split("/").pop();
@@ -774,8 +804,8 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
         participant_id: participantId,
         stimulus: file,
         trial_order: trialIdx + 1,
-        resp_veracity: Number(v.value),
-        resp_confidence: Number(c.value),
+        resp_veracity: Number(vVal.value),
+        resp_confidence: Number(cVal.value),
         truth: truth,
         rt_ms: rt_ms
       };
