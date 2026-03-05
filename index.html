@@ -43,50 +43,41 @@
     .stim { max-width: 100%; max-height: 420px; border-radius: 10px; border: 1px solid #2b2f3d; }
     .progress { font-size: 13px; opacity:.9; }
     .divider { height:1px; background:#252730; margin:14px 0; }
-
-    /* (base) Likert tipo tarjeta */
-    .likert-row { display:flex; flex-direction:column; gap:10px; margin: 8px 0 14px; }
-    .likert-row label { margin:0; display:flex; align-items:center; gap:10px; padding: 10px; border-radius: 10px; border: 1px solid #2b2f3d; background:#0f111a; }
     .q { margin: 8px 0 10px; }
     .q strong { display:block; margin-bottom: 8px; }
 
     /* Error box (solo aparece si hay error) */
     #errorBox { background:#2a0f14; border: 1px solid #6b1e2b; border-radius: 10px; padding: 12px; }
 
-    /* ✅ OVERRIDE SOLO EN TAREA: opciones como "antes" (en fila, simple) */
-    #sec-task .likert-row { display:flex; gap:12px; flex-wrap:wrap; margin: 8px 0 14px; }
-    #sec-task .likert-row label { margin:0; display:flex; align-items:center; gap:8px; padding:0; border:none; background:transparent; }
     /* ===== IH: compactar en mobile (no apilar) ===== */
     @media (max-width: 520px) {
       .ih-scale{
-      flex-direction: row;
-      flex-wrap: nowrap;         /* clave: no apilar */
-      align-items: center;
-      gap: 8px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
       }
-
-    .ih-end{
-      min-width: 72px;           /* baja fuerte vs 170px */
-      max-width: 72px;
-      font-size: 10px;
-      line-height: 1.1;
-      opacity: .85;
-      white-space: normal;       /* permite 2 líneas */
+      .ih-end{
+        min-width: 72px;
+        max-width: 72px;
+        font-size: 10px;
+        line-height: 1.1;
+        opacity: .85;
+        white-space: normal;
       }
-
-    .ih-radios{
-      gap: 8px;                  /* radios más juntos */
-      flex-wrap: nowrap;         /* clave: no cortar 1..5 */
+      .ih-radios{
+        gap: 8px;
+        flex-wrap: nowrap;
       }
-
-    .ih-radios label{
-     font-size: 12px;
-      gap: 4px;
+      .ih-radios label{
+        font-size: 12px;
+        gap: 4px;
+      }
     }
-  }
-    /* ===== Task: opciones como botones (en vez de radios) ===== */
-    .opt-row { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 14px; }
-    .opt-btn{
+
+    /* ===== BOTONES SOLO EN TAREA (titulares) ===== */
+    #sec-task .opt-row { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 14px; }
+    #sec-task .opt-btn{
       padding: 12px 14px;
       border-radius: 10px;
       border: 1px solid #2b2f3d;
@@ -94,9 +85,9 @@
       color:#d8dae8;
       font-weight: 700;
       cursor: pointer;
-  }
-    .opt-btn:hover { border-color:#5b8dee; }
-    .opt-btn.active { background:#5b8dee; border-color:#5b8dee; color:#fff; }
+    }
+    #sec-task .opt-btn:hover { border-color:#5b8dee; }
+    #sec-task .opt-btn.active { background:#5b8dee; border-color:#5b8dee; color:#fff; }
 
   </style>
 </head>
@@ -249,11 +240,13 @@
 
     <div class="q">
       <strong>¿Le parece que la información presentada en este titular es cierta?</strong>
-      <div class="likert-row" id="veracity-options"></div>
+      <!-- ✅ botones -->
+      <div class="opt-row" id="veracity-options"></div>
     </div>
 
     <div class="q">
       <strong>¿Con cuánta seguridad respondió?</strong>
+      <!-- ✅ botones -->
       <div class="opt-row" id="confidence-options"></div>
     </div>
 
@@ -292,7 +285,7 @@
   // CONFIG SUPABASE
   // =========================
   const SUPABASE_URL = "https://qwwdnoorbfpynnilaccy.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3d2Rub29yYmZweW5uaWxhY2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1NjY4ODcsImV4cCI6MjA4ODE0Mjg4N30.PqIZ_Dx9rJhZKp7VbwHyK5WbR9avVjkOJje7gFlAW_M";
+  const SUPABASE_ANON_KEY = "KEY"; // <-- tu anon key real
 
   // =========================
   // STIMULI
@@ -357,14 +350,14 @@
     "Cuando alguien no está de acuerdo con ideas que son importantes para mí, siento que me están atacando.",
     "Cuando alguien contradice mis creencias más importantes, lo siento como un ataque personal.",
     "Tiendo a sentirme amenazado, cuando otros no están de acuerdo conmigo en temas que son importantes.",
-    "Puedo respetar a otros, aunque esté fuertemente en desacuerdo con ellos.",
+    "Puedo respetar a otros, aunque esté fuertemente en desacuerdo en temas importantes.",
     "Estoy dispuesto/a a escuchar a otros, aunque no esté de acuerdo con lo que dicen.",
     "Cuando alguien no está de acuerdo con ideas que son importantes para mí, me siento insignificante.",
     "Me siento menos cuando otros no están de acuerdo con ideas que son importantes para mí."
   ];
 
   // =========================
-  // UI HELPERS (sin “estado” visible, solo errores)
+  // UI HELPERS
   // =========================
   const errorBox = document.getElementById("errorBox");
   function showError(msg) {
@@ -442,7 +435,7 @@
   }
 
   // =========================
-  // BUILD UI: Provincias + IH + Likerts
+  // BUILD UI
   // =========================
   function initProvinciaDropdown() {
     const sel = document.getElementById("provincia");
@@ -504,31 +497,29 @@
     });
   }
 
-  function buildTaskLikert(containerId, name, labels) {
-  const cont = document.getElementById(containerId);
-  cont.innerHTML = "";
-  cont.dataset.value = ""; // acá guardamos la opción elegida (1..4)
+  // ✅ BOTONES para tarea (solo contenedor + labels)
+  function buildTaskButtons(containerId, labels) {
+    const cont = document.getElementById(containerId);
+    cont.innerHTML = "";
+    cont.dataset.value = "";
 
-  labels.forEach((labText, i) => {
-    const v = String(i + 1);
+    labels.forEach((text, i) => {
+      const v = String(i + 1);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "opt-btn";
+      btn.dataset.value = v;
+      btn.textContent = text;
 
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "opt-btn";
-    btn.dataset.value = v;
-    btn.dataset.name = name;
-    btn.textContent = labText;
+      btn.addEventListener("click", () => {
+        cont.dataset.value = v;
+        cont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
 
-    btn.addEventListener("click", () => {
-      cont.dataset.value = v;
-      cont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+      cont.appendChild(btn);
     });
-
-    cont.appendChild(btn);
-  });
   }
-  
 
   // =========================
   // UTILS
@@ -552,7 +543,7 @@
   }
 
   // =========================
-  // STATE (guardamos todo y recién insertamos al empezar la tarea)
+  // STATE
   // =========================
   let grupo = null;
   let participantId = null;
@@ -570,7 +561,7 @@
   let userAgent = null;
 
   // =========================
-  // CONSIGNAS intervención
+  // CONSIGNAS
   // =========================
   const CONSIGNA_EXP = `Por favor, explicá con el mayor detalle posible cómo hacés para distinguir si una noticia es verdadera o falsa.
 No queremos que pienses en una noticia en particular, sino sobre el proceso general que usás para verificar la veracidad de la información: se trata de que brindes la mejor explicación que puedas.
@@ -737,8 +728,9 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
         stim_order: JSON.stringify(taskOrder.map(p => p.split("/").pop()))
       });
 
-      buildTaskLikert("veracity-options", "resp_veracity", ["Nada cierta","Poco cierta","Bastante cierta","Muy cierta"]);
-      buildTaskLikert("confidence-options", "resp_confidence", ["Nada seguro/a","Poco seguro/a","Bastante seguro/a","Muy seguro/a"]);
+      // ✅ construir botones (solo tarea)
+      buildTaskButtons("veracity-options", ["Nada cierta","Poco cierta","Bastante cierta","Muy cierta"]);
+      buildTaskButtons("confidence-options", ["Nada seguro/a","Poco seguro/a","Bastante seguro/a","Muy seguro/a"]);
 
       trialIdx = 0;
       seenFalseStimuli = [];
@@ -770,7 +762,6 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
     cCont.dataset.value = "";
     vCont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
     cCont.querySelectorAll(".opt-btn").forEach(b => b.classList.remove("active"));
-    }
 
     const nextBtn = document.getElementById("btn-next-trial");
     nextBtn.disabled = false;
@@ -804,8 +795,8 @@ Es importante no solo tratar de acertar, sino también que tu nivel de seguridad
         participant_id: participantId,
         stimulus: file,
         trial_order: trialIdx + 1,
-        resp_veracity: Number(vVal.value),
-        resp_confidence: Number(cVal.value),
+        resp_veracity: Number(vVal),
+        resp_confidence: Number(cVal),
         truth: truth,
         rt_ms: rt_ms
       };
