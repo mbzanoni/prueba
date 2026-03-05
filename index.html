@@ -56,6 +56,34 @@
     /* ✅ OVERRIDE SOLO EN TAREA: opciones como "antes" (en fila, simple) */
     #sec-task .likert-row { display:flex; gap:12px; flex-wrap:wrap; margin: 8px 0 14px; }
     #sec-task .likert-row label { margin:0; display:flex; align-items:center; gap:8px; padding:0; border:none; background:transparent; }
+    /* ===== IH: compactar en mobile (no apilar) ===== */
+    @media (max-width: 520px) {
+      .ih-scale{
+      flex-direction: row;
+      flex-wrap: nowrap;         /* clave: no apilar */
+      align-items: center;
+      gap: 8px;
+      }
+
+    .ih-end{
+      min-width: 72px;           /* baja fuerte vs 170px */
+      max-width: 72px;
+      font-size: 10px;
+      line-height: 1.1;
+      opacity: .85;
+      white-space: normal;       /* permite 2 líneas */
+      }
+
+    .ih-radios{
+      gap: 8px;                  /* radios más juntos */
+      flex-wrap: nowrap;         /* clave: no cortar 1..5 */
+      }
+
+    .ih-radios label{
+     font-size: 12px;
+      gap: 4px;
+    }
+}
   </style>
 </head>
 
